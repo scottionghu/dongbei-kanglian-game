@@ -1,4 +1,4 @@
-﻿<html lang="en-us"><script src="https://pygame-web.github.io/cdn/0.9.3/pythons.js" type=module id="site" data-python="python3.12" data-LINES=42 data-COLUMNS=132 data-os="vtx,snd,gui" async defer>#<!--
+<html lang="en-us"><script src="https://pygame-web.github.io/cdn/0.9.3/pythons.js" type=module id="site" data-python="python3.12" data-LINES=42 data-COLUMNS=132 data-os="vtx,snd,gui" async defer>#<!--
 
 print("""
 Loading webgame from webgame.apk
@@ -289,6 +289,41 @@ function show_infobox() {
 </head>
 
 <body>
+
+    <!-- 竖屏提示: 手机竖屏时要求横屏游玩 -->
+    <div id="rotate-overlay" style="display:none;position:fixed;inset:0;background:#101418;color:#fff;z-index:9999999;text-align:center;font-family:sans-serif;">
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">
+            <div style="font-size:72px;line-height:1;">&#x1F504;</div>
+            <div style="font-size:22px;margin-top:16px;">请将手机横过来游玩</div>
+            <div style="font-size:14px;margin-top:8px;color:#9aa;">横屏后点击屏幕即可开始</div>
+        </div>
+    </div>
+    <script type="application/javascript">
+    (function () {
+        var ov = document.getElementById('rotate-overlay');
+        var coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+        function chkOri() {
+            if (!coarse) { ov.style.display = 'none'; return; }
+            ov.style.display = (window.innerHeight > window.innerWidth) ? 'block' : 'none';
+        }
+        window.addEventListener('resize', chkOri);
+        window.addEventListener('orientationchange', chkOri);
+        setInterval(chkOri, 800);
+        chkOri();
+        // 首次触摸: 请求全屏并锁定横屏 (安卓生效, iOS自动忽略, 靠提示遮罩兜底)
+        if (coarse) {
+            window.addEventListener('touchend', function tryLock() {
+                var el = document.documentElement;
+                var p = el.requestFullscreen ? el.requestFullscreen() : Promise.reject();
+                Promise.resolve(p).then(function () {
+                    if (screen.orientation && screen.orientation.lock)
+                        return screen.orientation.lock('landscape');
+                }).catch(function () {});
+                window.removeEventListener('touchend', tryLock);
+            });
+        }
+    })();
+    </script>
 
     <div id="transfer" align=center>
 <!--        <div class="spinner" id='spinner'></div> -->
